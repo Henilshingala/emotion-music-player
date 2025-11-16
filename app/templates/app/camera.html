@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection Camera</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease-in-out infinite;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffeb3b;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #status {
+            margin: 20px 0;
+            font-size: 18px;
+            min-height: 25px;
+        }
+        
+        .error {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #2ed573;
+            background: rgba(46, 213, 115, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .container {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        button {
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        #video {
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            button {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+
+            #video {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+                margin: 5px;
+            }
+
+            .container {
+                margin: 5px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Emotion Scanner</h1>
+        <div class="subtitle">
+            <p>Advanced AI-powered emotion detection with personalized training!</p>
+            <p>Scan your emotion and see the result instantly.</p>
+        </div>
+        
+        <button id="startBtn" onclick="startDetection()">Start Detection</button>
+        <button onclick="window.location.href='/train/'" style="background: linear-gradient(45deg, #74b9ff, #0984e3);">🎯 Train Custom Model</button>
+        
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        
+        <div id="timer"></div>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let stream = null;
+        let countdown = null;
+        
+        async function startDetection() {
+            const startBtn = document.getElementById('startBtn');
+            const status = document.getElementById('status');
+            const timer = document.getElementById('timer');
+            
+            try {
+                startBtn.disabled = true;
+                status.innerHTML = 'Requesting camera access...';
+                
+                
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 } 
+                    } 
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                status.innerHTML = 'Camera ready! Starting 10-second countdown...';
+                
+                
+                let timeLeft = 10;
+                timer.innerHTML = `📸 Capturing in: ${timeLeft} seconds`;
+                
+                countdown = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) {
+                        timer.innerHTML = `📸 Capturing in: ${timeLeft} seconds`;
+                    } else {
+                        clearInterval(countdown);
+                        timer.innerHTML = '📸 Capturing now!';
+                        captureFrame();
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                status.innerHTML = '<div class="error">❌ Camera access denied or not available. Please allow camera access and try again.</div>';
+                startBtn.disabled = false;
+            }
+        }
+        
+        function captureFrame() {
+            const status = document.getElementById('status');
+            const timer = document.getElementById('timer');
+            
+            try {
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.style.display = 'none';
+                
+                timer.innerHTML = '🔍 Analyzing emotion...';
+                status.innerHTML = 'Processing image for emotion detection...';
+                
+                
+                sendImageForDetection(imageData);
+                
+            } catch (error) {
+                console.error('Error capturing frame:', error);
+                status.innerHTML = '<div class="error">❌ Error capturing image. Please try again.</div>';
+                resetInterface();
+            }
+        }
+        
+        function sendImageForDetection(imageData) {
+            const status = document.getElementById('status');
+            const timer = document.getElementById('timer');
+            
+            
+            const base64Image = imageData.split(',')[1];
+            
+            fetch('/detect-emotion/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'image': base64Image
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.emotion) {
+                    const confidencePercent = data.confidence ? (data.confidence * 100).toFixed(1) + '%' : '';
+                    timer.innerHTML = `🎉 Emotion detected: ${data.emotion}`;
+                    status.innerHTML = `<div class="success">✅ Detected: <strong>${data.emotion}</strong> ${confidencePercent ? `(confidence: ${confidencePercent})` : ''}</div>`;
+                } else {
+                    timer.innerHTML = '';
+                    status.innerHTML = '<div class="error">❌ Emotion detection failed, try again</div>';
+                    resetInterface();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                timer.innerHTML = '';
+                status.innerHTML = '<div class="error">❌ Network error. Please check your connection and try again.</div>';
+                resetInterface();
+            });
+        }
+        
+        function resetInterface() {
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = false;
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            setTimeout(() => {
+                document.getElementById('timer').innerHTML = '';
+                document.getElementById('status').innerHTML = '';
+            }, 3000);
+        }
+        
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
