@@ -1,43 +1,23 @@
-# Python Virtual Environment
+# Virtual Environment
 venv/
 venv311/
-env/
 ENV/
 
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-*.egg-info/
-dist/
-build/
 
-# Django
-*.log
+# Database
 db.sqlite3
-db.sqlite3-journal
-media/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Model files (optional - can be large)
+# Media
+media/downloaded_songs/
+media/training_images/
+
+# Models
 *.pkl
-
-# Large media files
-media/
-*.mp3
-*.mp4
-*.wav
-
-# AI/ML data
-aiml/
