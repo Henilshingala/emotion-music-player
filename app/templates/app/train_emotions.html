@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Emotion Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .emotion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .emotion-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .emotion-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+        }
+        
+        .emotion-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .emotion-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .capture-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .capture-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .sample-count {
+            margin: 10px 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 10px;
+            margin: 20px auto;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .train-btn {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .train-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .train-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            min-height: 25px;
+        }
+        
+        .success {
+            color: #2ed573;
+            background: rgba(46, 213, 115, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .error {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Train Your Emotion Detection</h1>
+        
+        <div class="controls">
+            <button id="startCameraBtn" onclick="startCamera()">📹 Start Camera</button>
+            <button id="trainModelBtn" onclick="trainModel()" class="train-btn" disabled>🧠 Train Model</button>
+            <button onclick="window.location.href='/'" class="train-btn">🏠 Back to Main</button>
+        </div>
+        
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="emotion-grid">
+            <div class="emotion-card" data-emotion="happy">
+                <div class="emotion-icon">😊</div>
+                <div class="emotion-name">Happy</div>
+                <button class="capture-btn" onclick="captureEmotion('happy')" disabled>📸 Capture Happy</button>
+                <div class="sample-count" id="happy-count">Samples: 0</div>
+            </div>
+            
+            <div class="emotion-card" data-emotion="sad">
+                <div class="emotion-icon">😢</div>
+                <div class="emotion-name">Sad</div>
+                <button class="capture-btn" onclick="captureEmotion('sad')" disabled>📸 Capture Sad</button>
+                <div class="sample-count" id="sad-count">Samples: 0</div>
+            </div>
+            
+            <div class="emotion-card" data-emotion="angry">
+                <div class="emotion-icon">😠</div>
+                <div class="emotion-name">Angry</div>
+                <button class="capture-btn" onclick="captureEmotion('angry')" disabled>📸 Capture Angry</button>
+                <div class="sample-count" id="angry-count">Samples: 0</div>
+            </div>
+            
+            <div class="emotion-card" data-emotion="surprise">
+                <div class="emotion-icon">😲</div>
+                <div class="emotion-name">Surprise</div>
+                <button class="capture-btn" onclick="captureEmotion('surprise')" disabled>📸 Capture Surprise</button>
+                <div class="sample-count" id="surprise-count">Samples: 0</div>
+            </div>
+            
+            <div class="emotion-card" data-emotion="fear">
+                <div class="emotion-icon">😨</div>
+                <div class="emotion-name">Fear</div>
+                <button class="capture-btn" onclick="captureEmotion('fear')" disabled>📸 Capture Fear</button>
+                <div class="sample-count" id="fear-count">Samples: 0</div>
+            </div>
+            
+            <div class="emotion-card" data-emotion="disgust">
+                <div class="emotion-icon">🤢</div>
+                <div class="emotion-name">Disgust</div>
+                <button class="capture-btn" onclick="captureEmotion('disgust')" disabled>📸 Capture Disgust</button>
+                <div class="sample-count" id="disgust-count">Samples: 0</div>
+            </div>
+            
+            <div class="emotion-card" data-emotion="neutral">
+                <div class="emotion-icon">😐</div>
+                <div class="emotion-name">Neutral</div>
+                <button class="capture-btn" onclick="captureEmotion('neutral')" disabled>📸 Capture Neutral</button>
+                <div class="sample-count" id="neutral-count">Samples: 0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let stream = null;
+        let trainingData = {
+            happy: [],
+            sad: [],
+            angry: [],
+            surprise: [],
+            fear: [],
+            disgust: [],
+            neutral: []
+        };
+        
+        async function startCamera() {
+            try {
+                const status = document.getElementById('status');
+                status.innerHTML = 'Starting camera...';
+                
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 } 
+                    } 
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                const captureButtons = document.querySelectorAll('.capture-btn');
+                captureButtons.forEach(btn => btn.disabled = false);
+                
+                document.getElementById('startCameraBtn').disabled = true;
+                status.innerHTML = '<div class="success">✅ Camera ready! Make an expression and click capture.</div>';
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                document.getElementById('status').innerHTML = '<div class="error">❌ Camera access denied. Please allow camera access.</div>';
+            }
+        }
+        
+        function captureEmotion(emotion) {
+            try {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                const base64Image = imageData.split(',')[1];
+                
+                trainingData[emotion].push(base64Image);
+                
+                const countElement = document.getElementById(emotion + '-count');
+                countElement.textContent = `Samples: ${trainingData[emotion].length}`;
+                
+                document.getElementById('status').innerHTML = 
+                    `<div class="success">✅ Captured ${emotion} sample #${trainingData[emotion].length}</div>`;
+                
+                const totalSamples = Object.values(trainingData).reduce((sum, samples) => sum + samples.length, 0);
+                if (totalSamples >= 10) {
+                    document.getElementById('trainModelBtn').disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('Error capturing image:', error);
+                document.getElementById('status').innerHTML = '<div class="error">❌ Error capturing image.</div>';
+            }
+        }
+        
+        function trainModel() {
+            const status = document.getElementById('status');
+            const trainBtn = document.getElementById('trainModelBtn');
+            
+            trainBtn.disabled = true;
+            status.innerHTML = '🧠 Training your personalized emotion model...';
+            
+            fetch('/train-emotions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'training_data': trainingData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    status.innerHTML = '<div class="success">🎉 Model trained successfully! Your personalized emotion detection is ready.</div>';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    status.innerHTML = '<div class="error">❌ Training failed: ' + (data.error || 'Unknown error') + '</div>';
+                    trainBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                status.innerHTML = '<div class="error">❌ Network error during training.</div>';
+                trainBtn.disabled = false;
+            });
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
