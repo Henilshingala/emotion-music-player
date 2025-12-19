@@ -69,12 +69,10 @@ Visit `http://127.0.0.1:8000/` in your web browser to start the emotion detectio
 
 Here are some screenshots showcasing the application's interface and functionality:
 
-| | |
-|---|---|
-| ![Landing Page](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/1.png) |<br> ![Emotion Detection](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/2.png) |<br>
-| ![Music Player Interface](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/3.png) |<br> ![Playlist View](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/4.png) |<br>
-| ![Model Training Interface](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/5.png) |<br> ![Analysis Results](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/6.png) |<br>
-| ![Song Management](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/7.png) |<br> ![User Preferences](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/8.png) |<br>
+![Landing Page](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/1.png) <br> ![Emotion Detection](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/2.png) |<br>
+ ![Music Player Interface](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/3.png) <br> ![Playlist View](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/4.png) |<br>
+![Model Training Interface](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/5.png) <br> ![Analysis Results](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/6.png) |<br>
+ ![Song Management](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/7.png) <br> ![User Preferences](https://raw.githubusercontent.com/Henilshingala/Output-images/master/emotion-music-player/8.png) <br>
 
 ---
 *Reference for Output Images:* [Henilshingala/Output-images](https://github.com/Henilshingala/Output-images/tree/master/emotion-music-player)
